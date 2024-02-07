@@ -49,6 +49,11 @@ ImgList::ImgList(PNG& img) {
         {
             ImgNode*  newNode = new ImgNode();
             (*newNode).colour = (*img.getPixel(y, x));
+            (*newNode).skipdown = 0;
+            (*newNode).skipleft = 0;
+            (*newNode).skipright = 0;
+            (*newNode).skipup = 0;
+
 
             if(j == 0 && i == 0){
                 north_new = newNode;
@@ -56,46 +61,54 @@ ImgList::ImgList(PNG& img) {
             }
             
             if(i = 0){
-                (*newNode).west = NULL;
+                west_new = NULL;
                 /* (*newNode).north = north_new;
                 (*north_new).south = newNode; */
-                west_new = newNode;
+                north_new = north_curr;
                 north_curr = newNode; 
+                
 
-            }
+            } 
              // intermidiate step
             
             if(i = dimentiony_pic) {
                 (*newNode).east = NULL;
-                north_new = north_curr;
+                
             }
             
             if(j = 0){
-                (*newNode).north = NULL;
+                north_new = NULL;
 
+            } else {
+                int k = 0;
+            while(k <= i - 1)
+            {
+                north_new = north_new->east;
+            }
             }
             if(j = dimentiony_pic) {
                 (*newNode).south = NULL;
             }
 
-            int k = 0;
-            while(k <= i - 1)
-            {
-                north_new = north_new->east;
-            }
 
             (*newNode).north = north_new;
+            if (north_new != NULL) {
             (*north_new).south = newNode;
+            }
             (*newNode).west = west_new;
+            if (west_new != NULL){
             (*west_new).east = newNode;
-            north_curr = north_new;
+            }
+            
+            west_new = newNode;
             
 
             //EAST and west are assignned with each loop
 
-        if (x == 0 && y == 0) {
+        if (i == 0 && j == 0) {
         (*pic).northwest = newNode;
-        } else if (x == img.width() && y == img.height()) {
+        } 
+        if (x == img.width() && y == img.height()) {
         (*pic).southeast = newNode;
         }
         
