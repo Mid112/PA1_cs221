@@ -14,12 +14,14 @@
 /*********************
 * CONSTRUCTORS, ETC. *
 *********************/
-//new line added
+
 /**
  * Default constructor. Makes an empty list
  */
 ImgList::ImgList() {
     // set appropriate values for all member attributes here
+    northwest = NULL;
+    southeast = NULL;
 	
 }
 
@@ -29,7 +31,81 @@ ImgList::ImgList() {
  */
 ImgList::ImgList(PNG& img) {
     // build the linked node structure and set the member attributes appropriately
-	
+    int x = 0;
+    int y =0;
+    ImgList* pic = new ImgList();
+    int dimentionx_pic = img.width();
+    int dimentiony_pic = img.height();
+    ImgNode* north_new = NULL;
+    ImgNode* south_new = NULL;
+    ImgNode* east_new = NULL;
+    ImgNode* west_new = NULL;
+    ImgNode* north_curr = NULL;
+//mangement of 1 node
+
+
+    for (int j = 0; j <=  dimentiony_pic -1 ; j++) {
+        for (int i = 0; i < dimentionx_pic - 1; i++)
+        {
+            ImgNode*  newNode = new ImgNode();
+            (*newNode).colour = (*img.getPixel(y, x));
+
+            if(j == 0 && i == 0){
+                north_new = newNode;
+                west_new = newNode;
+            }
+            
+            if(i = 0){
+                (*newNode).west = NULL;
+                /* (*newNode).north = north_new;
+                (*north_new).south = newNode; */
+                west_new = newNode;
+                north_curr = newNode; 
+
+            }
+             // intermidiate step
+            
+            if(i = dimentiony_pic) {
+                (*newNode).east = NULL;
+                north_new = north_curr;
+            }
+            
+            if(j = 0){
+                (*newNode).north = NULL;
+
+            }
+            if(j = dimentiony_pic) {
+                (*newNode).south = NULL;
+            }
+
+            int k = 0;
+            while(k <= i - 1)
+            {
+                north_new = north_new->east;
+            }
+
+            (*newNode).north = north_new;
+            (*north_new).south = newNode;
+            (*newNode).west = west_new;
+            (*west_new).east = newNode;
+            north_curr = north_new;
+            
+
+            //EAST and west are assignned with each loop
+
+        if (x == 0 && y == 0) {
+        (*pic).northwest = newNode;
+        } else if (x == img.width() && y == img.height()) {
+        (*pic).southeast = newNode;
+        }
+        
+        }
+        
+        
+    }
+    
+     
+
 }
 
 /************
