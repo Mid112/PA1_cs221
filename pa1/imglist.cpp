@@ -81,12 +81,8 @@ ImgList::ImgList(PNG& img) {
             curr = new ImgNode();
             
             if (west_new) {
-                cout << "line new2" << endl;
             curr->west = west_new;
-            cout << "line new" << endl;
             west_new->east =  &(*curr);
-            cout << "line error" << endl;
-            
             }
             
             }
@@ -119,12 +115,10 @@ ImgList::ImgList(PNG& img) {
             
             
         }
-        cout << "line error22" << endl;
+        
         northOfPrev = northOfCurr;
         if (y != dimensionY -1) {
-            cout << "line error23" << endl;
         northOfCurr = northOfCurr->south;
-        cout << "line error24" << endl;
         }
         
     }
@@ -145,7 +139,7 @@ ImgList::ImgList(PNG& img) {
  *   x dimension.
  */
 unsigned int ImgList::GetDimensionX() const {
-    // replace the following line with your implementation
+     // replace the following line with your implementation
    //use a loop to count and add the number of nodes in a row and then return that number
    //Left most node should have node at its right and NULL at its left , whereas right most node should have node at its left and NULL at its right, thats how to see first and last
    // add till there and return
@@ -161,7 +155,7 @@ unsigned int ImgList::GetDimensionX() const {
  }
 
 
-   unsigned count =0;
+   unsigned count = 1;
 
 
    while (node->east != NULL)
@@ -198,7 +192,7 @@ unsigned int ImgList::GetDimensionY() const {
  }
 
 
-    unsigned count = 0;
+    unsigned count = 1;
    while (node->south != NULL)
    {
        count++;
@@ -217,7 +211,7 @@ unsigned int ImgList::GetDimensionY() const {
  *   x dimension.
  */
 unsigned int ImgList::GetDimensionFullX() const {
-    // replace the following line with your implementation
+     // replace the following line with your implementation
    ImgNode* node = northwest;
    //guards
    if (northwest == southeast) {
@@ -228,7 +222,7 @@ unsigned int ImgList::GetDimensionFullX() const {
  }
 
 
-    unsigned count = 0;
+    unsigned count = 1;
 
 
    while (node)
@@ -262,15 +256,79 @@ unsigned int ImgList::GetDimensionFullX() const {
  */
 ImgNode* ImgList::SelectNode(ImgNode* rowstart, int selectionmode) {
     // add your implementation below
-    if (selectionmode){
-        //colour deference
+ // add your implementation below
 
-    } else {
-        //brightness
 
-    }
+   //0 - minimum brightness across row
+   //1 - node with minmimum total of "colour difference" with West/East neighbour
+
+
+   ImgNode* curr= rowstart->east; //since we exclude the first one
+
+
+   //keep going east in a loop until east == NULL
+   //BUT first and last nodes cannot be returned so if node->west || node->east are null then dont return a pointer to that node
+   //loop to find lowest head->colour.r ,  head->colour.g , head->colour.b
+   //use distanceTo function to find color difference between two pixels
+
+
+   double pixel_brightness = (curr->colour.r + curr->colour.g + curr->colour.b)*(curr->colour.a);
+
+
+   if (selectionmode==0) {
+
+
+       double brightness = 0.0;
+       ImgNode* lowestBrightnessNode = curr;
+
+
+   while (curr->east->east) {
+     if (pixel_brightness < brightness) {
+       lowestBrightnessNode= curr->east;
+       pixel_brightness = brightness;
+     }
+     curr = curr->east;
+   }
+   return lowestBrightnessNode;
+
+
+
+
+   }
+
+
+
+
+   if (selectionmode==1) {
+
+
+    ImgNode* leastDiff= curr;
+    RGBAPixel pixel = curr;
+
+
+     while (curr->east->east) {
+     curr = curr->east;
+
+
+
+
+     double diff_east = pixel.distanceTo(curr, curr->east);
+     double diff_west = pixel.distanceTo(curr, curr->west);
+
+
+     if ( diff_east + diff_west < leastDiff) {
+       leastDiff = +;
+       leastDiffNode = curr;       
+     }
+   }
+   return leastDiffNode;
+   }
   
-    return NULL;
+     //returns a pointer to the node.
+
+
+ return NULL;
+
 }
 
 /**
@@ -405,14 +463,34 @@ void ImgList::Clear() {
     curr = startCurr;
 
     while(startCurr){
+        if (startCurr->south) {
+            startCurr = startCurr->south;
+
+        }else{
+            startCurr = NULL;
+        }
+        
+        
         while (curr)
         {
             ImgNode* prev = curr;
-            curr = curr->east;
+            if(curr->east){
+            curr = curr->east;  
+            } else{
+                curr = NULL;
+            }
+            
+            prev->north = NULL;
+            prev->south = NULL;
+            prev->east = NULL;
+            prev->west = NULL;
+
             delete prev;
             prev = NULL;
+            
         }
-        startCurr = startCurr->south;
+        
+        
         curr = startCurr;
 
         
