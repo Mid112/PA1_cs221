@@ -37,72 +37,100 @@ ImgList::ImgList(PNG& img) {
     ImgNode* northOfPrev = NULL;
     ImgNode* northOfCurr = NULL;
     ImgNode* curr = NULL;
-    ImgNode* west_new = NULL;
-    ImgNode* PrevStart = NULL;
+    
 //mangement of 1 node
 
-    if (dimensionX == 1 || dimensionY ==1)
+    if (dimensionX == 1 && dimensionY ==1)
     {
         northwest = new ImgNode();
         southeast = northwest;
+        return;
     }
 
-    northwest = new ImgNode();
-    northOfPrev = northwest;
-    PrevStart = new ImgNode();
+    
+ 
 
 
     for (int y = 0; y < dimensionY; y++)
     {
+        cout<< y << endl;
+         
+        if( y== 0){
+            
+            northwest = new ImgNode();
+            northOfCurr = northwest;
+            northOfPrev = NULL;
+            
+        } else {
+            northOfCurr = new ImgNode();
+        }
 
-        if (y == 0) {
-            west_new = northOfPrev;
-            ImgNode* east = PrevStart;
-            west_new->colour = (*img.getPixel(0,0));
-            east->colour = (*img.getPixel(dimensionX -1, 0));
-        for (int x = 1; x < dimensionX -1; x++)
+        ImgNode* west_new;
+        
+        for (int x = 0; x < dimensionX; x++)
         {
-            curr = new ImgNode();
-            curr->colour = (*img.getPixel(x,y));
 
-            curr->west = west_new;
-            curr->east = east;
-            west_new = curr;
+            cout<< x << endl;
             
 
-        }
-        } else{
-            west_new = new ImgNode();
-            west_new->colour = (*img.getPixel(0,y));
-            west_new->north = northOfPrev;
-            northOfPrev->south = west_new;
-            ImgNode* east = new ImgNode();
-            east->colour = (*img.getPixel(dimensionX -1, y));
-            east->north = PrevStart;
-            PrevStart->south = east;
-            northOfCurr = northOfPrev->east;
-
-            for (int x = 0; x < dimensionX -1; x++)
+            if(x == 0){
+                curr = northOfCurr;
+                west_new = northOfCurr;
+            } else
             {
-                curr = new ImgNode();
-                curr->colour =  (*img.getPixel(x,y));
-                curr->west = west_new;
-                curr->east = east;
-                east->west = curr;
-                curr->north = northOfCurr;
-                northOfCurr->south = curr;
-
-                west_new = west_new->east;
-                northOfCurr = northOfCurr->east;
+            curr = new ImgNode();
+            
+            if (west_new) {
+                cout << "line new2" << endl;
+            curr->west = west_new;
+            cout << "line new" << endl;
+            west_new->east =  &(*curr);
+            cout << "line error" << endl;
+            
+            }
+            
+            }
+            
+            if (northOfPrev) {
+             
+            curr->north = northOfPrev;
+            northOfPrev->south = curr;
+            if( x != dimensionX -1) {
+            northOfPrev = northOfPrev->east;
+            }
+            
             }
 
-            northOfPrev = northOfPrev->south;
-            PrevStart = PrevStart->south;
+            curr->colour = *img.getPixel(x,y);
             
+
+
+            if (y == dimensionY - 1 && x== dimensionX - 1)
+            {
+                southeast = curr;
+            }
+            west_new = curr;
+
+            if (x != dimensionX -1 ){
+                curr = curr->east;
+            }
+            
+
+            
+            
+        }
+        cout << "line error22" << endl;
+        northOfPrev = northOfCurr;
+        if (y != dimensionY -1) {
+            cout << "line error23" << endl;
+        northOfCurr = northOfCurr->south;
+        cout << "line error24" << endl;
         }
         
     }
-    southeast = PrevStart;
+    
+
+	
 }
 
 /************
@@ -118,8 +146,36 @@ ImgList::ImgList(PNG& img) {
  */
 unsigned int ImgList::GetDimensionX() const {
     // replace the following line with your implementation
-    return -1;
+   //use a loop to count and add the number of nodes in a row and then return that number
+   //Left most node should have node at its right and NULL at its left , whereas right most node should have node at its left and NULL at its right, thats how to see first and last
+   // add till there and return
+   //count the number of nodes between LEFTMOST -> west == NULL and RIGHTMOST->east == NULL;
+
+
+   ImgNode* node = northwest;
+   if (northwest == southeast) {
+   return 1;
+ }
+    if (!northwest || !southeast) {
+   return 0;
+ }
+
+
+   unsigned count =0;
+
+
+   while (node->east != NULL)
+   {
+       count++;
+       node = node->east;
+   }
+
+
+
+
+   return count;
 }
+
 
 /**
  * Returns the vertical dimension of the list (counted in nodes)
@@ -130,8 +186,27 @@ unsigned int ImgList::GetDimensionX() const {
  *   y dimension.
  */
 unsigned int ImgList::GetDimensionY() const {
-    // replace the following line with your implementation
-    return -1;
+     // replace the following line with your implementation
+   //use a loop to count and add the number of nodes in a column and then return that number
+   ImgNode* node = northwest;
+   //guards
+   if (northwest == southeast) {
+   return 1;
+ }
+    if (!northwest || !southeast) {
+   return 0;
+ }
+
+
+    unsigned count = 0;
+   while (node->south != NULL)
+   {
+       count++;
+       node = node->south;
+   }
+
+
+   return count;
 }
 
 /**
@@ -143,8 +218,29 @@ unsigned int ImgList::GetDimensionY() const {
  */
 unsigned int ImgList::GetDimensionFullX() const {
     // replace the following line with your implementation
+   ImgNode* node = northwest;
+   //guards
+   if (northwest == southeast) {
+   return 1;
+ }
+    if (!northwest || !southeast) {
+   return 0;
+ }
 
-    return -1;
+
+    unsigned count = 0;
+
+
+   while (node)
+   {
+       unsigned addSkip = node->skipright + 1;
+        count += addSkip;
+        node = node ->east;
+   }
+
+
+   return count;
+
 }
 
 /**
@@ -220,13 +316,7 @@ void ImgList::Carve(int selectionmode) {
     // add your implementation here
     ImgNode* startOfRow = northwest;
 
-    if (!startOfRow)
-        {
-            return;
-            
-        }
-
-    while (1)
+    while (startOfRow)
     {
         
         
@@ -234,13 +324,13 @@ void ImgList::Carve(int selectionmode) {
 
         nodeDelete->east->west = nodeDelete->west;
         nodeDelete->west->east = nodeDelete->east;
-        nodeDelete->west->skipright = nodeDelete->west->skipright + nodeDelete->skipright + 1;
-        nodeDelete->east->skipleft = nodeDelete->east->skipleft + nodeDelete->skipleft + 1;
+        nodeDelete->west->skipright = (nodeDelete->west->skipright) + (nodeDelete->skipright) + (1);
+        nodeDelete->east->skipleft = (nodeDelete->east->skipleft) + (nodeDelete->skipleft) + (1);
 
         if(nodeDelete->north){
             nodeDelete->north->south = nodeDelete->south;
 
-            nodeDelete->north->skipdown = nodeDelete->north->skipdown + nodeDelete->skipdown + 1;
+            nodeDelete->north->skipdown = (nodeDelete->north->skipdown) + (nodeDelete->skipdown) + (1);
 
         }
 
@@ -248,7 +338,7 @@ void ImgList::Carve(int selectionmode) {
 
             nodeDelete->south->north = nodeDelete->north;
 
-            nodeDelete->south->skipup = nodeDelete->south->skipup + nodeDelete->skipup + 1;
+            nodeDelete->south->skipup = (nodeDelete->south->skipup)+ (nodeDelete->skipup) + (1);
 
         }
 
@@ -323,12 +413,16 @@ void ImgList::Clear() {
             prev = NULL;
         }
         startCurr = startCurr->south;
+        curr = startCurr;
+
         
         
     }
 
     startCurr = NULL;
     curr = NULL;
+    northwest = NULL;
+    southeast = NULL;
     
 	
 }
