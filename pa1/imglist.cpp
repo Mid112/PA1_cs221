@@ -31,94 +31,78 @@ ImgList::ImgList() {
  */
 ImgList::ImgList(PNG& img) {
     // build the linked node structure and set the member attributes appropriately
-    int x = 0;
-    int y =0;
-    ImgList* pic = new ImgList();
-    int dimentionx_pic = img.width();
-    int dimentiony_pic = img.height();
-    ImgNode* north_new = NULL;
-    ImgNode* south_new = NULL;
-    ImgNode* east_new = NULL;
+    
+    signed int dimensionX = img.width();
+    signed int dimensionY = img.height();
+    ImgNode* northOfPrev = NULL;
+    ImgNode* northOfCurr = NULL;
+    ImgNode* curr = NULL;
     ImgNode* west_new = NULL;
-    ImgNode* north_curr = NULL;
+    ImgNode* PrevStart = NULL;
 //mangement of 1 node
 
+    if (dimensionX == 1 || dimensionY ==1)
+    {
+        northwest = new ImgNode();
+        southeast = northwest;
+    }
 
-    for (int j = 0; j <=  dimentiony_pic -1 ; j++) {
-        for (int i = 0; i < dimentionx_pic - 1; i++)
+    northwest = new ImgNode();
+    northOfPrev = northwest;
+    PrevStart = new ImgNode();
+
+
+    for (int y = 0; y < dimensionY; y++)
+    {
+
+        if (y == 0) {
+            west_new = northOfPrev;
+            ImgNode* east = PrevStart;
+            west_new->colour = (*img.getPixel(0,0));
+            east->colour = (*img.getPixel(dimensionX -1, 0));
+        for (int x = 1; x < dimensionX -1; x++)
         {
-            ImgNode*  newNode = new ImgNode();
-            (*newNode).colour = (*img.getPixel(y, x));
-            (*newNode).skipdown = 0;
-            (*newNode).skipleft = 0;
-            (*newNode).skipright = 0;
-            (*newNode).skipup = 0;
+            curr = new ImgNode();
+            curr->colour = (*img.getPixel(x,y));
 
-
-            if(j == 0 && i == 0){
-                north_new = newNode;
-                west_new = newNode;
-            }
+            curr->west = west_new;
+            curr->east = east;
+            west_new = curr;
             
-            if(i = 0){
-                west_new = NULL;
-                /* (*newNode).north = north_new;
-                (*north_new).south = newNode; */
-                north_new = north_curr;
-                north_curr = newNode; 
-                
 
-            } 
-             // intermidiate step
-            
-            if(i = dimentiony_pic) {
-                (*newNode).east = NULL;
-                
-            }
-            
-            if(j = 0){
-                north_new = NULL;
+        }
+        } else{
+            west_new = new ImgNode();
+            west_new->colour = (*img.getPixel(0,y));
+            west_new->north = northOfPrev;
+            northOfPrev->south = west_new;
+            ImgNode* east = new ImgNode();
+            east->colour = (*img.getPixel(dimensionX -1, y));
+            east->north = PrevStart;
+            PrevStart->south = east;
+            northOfCurr = northOfPrev->east;
 
-            } else {
-                int k = 0;
-            while(k <= i - 1)
+            for (int x = 0; x < dimensionX -1; x++)
             {
-                north_new = north_new->east;
-            }
-            }
-            if(j = dimentiony_pic) {
-                (*newNode).south = NULL;
+                curr = new ImgNode();
+                curr->colour =  (*img.getPixel(x,y));
+                curr->west = west_new;
+                curr->east = east;
+                east->west = curr;
+                curr->north = northOfCurr;
+                northOfCurr->south = curr;
+
+                west_new = west_new->east;
+                northOfCurr = northOfCurr->east;
             }
 
-
-            (*newNode).north = north_new;
-            if (north_new != NULL) {
-            (*north_new).south = newNode;
-            }
-            (*newNode).west = west_new;
-            if (west_new != NULL){
-            (*west_new).east = newNode;
-            }
+            northOfPrev = northOfPrev->south;
+            PrevStart = PrevStart->south;
             
-            west_new = newNode;
-            
-
-            //EAST and west are assignned with each loop
-
-        if (i == 0 && j == 0) {
-        (*pic).northwest = newNode;
-        } 
-        if (x == img.width() && y == img.height()) {
-        (*pic).southeast = newNode;
         }
-        
-        }
-        
         
     }
-    
-     
-
+    southeast = PrevStart;
 }
 
 /************
@@ -159,6 +143,7 @@ unsigned int ImgList::GetDimensionY() const {
  */
 unsigned int ImgList::GetDimensionFullX() const {
     // replace the following line with your implementation
+
     return -1;
 }
 
@@ -181,6 +166,13 @@ unsigned int ImgList::GetDimensionFullX() const {
  */
 ImgNode* ImgList::SelectNode(ImgNode* rowstart, int selectionmode) {
     // add your implementation below
+    if (selectionmode){
+        //colour deference
+
+    } else {
+        //brightness
+
+    }
   
     return NULL;
 }
@@ -226,6 +218,51 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
  */
 void ImgList::Carve(int selectionmode) {
     // add your implementation here
+    ImgNode* startOfRow = northwest;
+
+    if (!startOfRow)
+        {
+            return;
+            
+        }
+
+    while (1)
+    {
+        
+        
+        ImgNode* nodeDelete = SelectNode(startOfRow, selectionmode);
+
+        nodeDelete->east->west = nodeDelete->west;
+        nodeDelete->west->east = nodeDelete->east;
+        nodeDelete->west->skipright = nodeDelete->west->skipright + nodeDelete->skipright + 1;
+        nodeDelete->east->skipleft = nodeDelete->east->skipleft + nodeDelete->skipleft + 1;
+
+        if(nodeDelete->north){
+            nodeDelete->north->south = nodeDelete->south;
+
+            nodeDelete->north->skipdown = nodeDelete->north->skipdown + nodeDelete->skipdown + 1;
+
+        }
+
+        if(nodeDelete->south){
+
+            nodeDelete->south->north = nodeDelete->north;
+
+            nodeDelete->south->skipup = nodeDelete->south->skipup + nodeDelete->skipup + 1;
+
+        }
+
+        delete nodeDelete;
+        nodeDelete = NULL;
+
+        if(!startOfRow->south){
+            return;
+        }
+
+        startOfRow = startOfRow->south;
+    }
+    
+
 	
 }
 
@@ -245,7 +282,22 @@ void ImgList::Carve(int selectionmode) {
  */
 void ImgList::Carve(unsigned int rounds, int selectionmode) {
     // add your implementation here
-	
+    int x_removal = GetDimensionX() - 2;
+    ImgNode* startOfRow = northwest;
+
+    if (rounds <= x_removal)
+    {
+        x_removal = rounds;
+        
+    }  
+
+    for(int x = 1; x <= x_removal; x++)
+    {
+        Carve(selectionmode);  
+    
+    }
+
+
 }
 
 
@@ -256,7 +308,28 @@ void ImgList::Carve(unsigned int rounds, int selectionmode) {
  *       member attributes have values consistent with an empty list.
  */
 void ImgList::Clear() {
-    // add your implementation here
+    ImgNode* curr;
+    ImgNode* startCurr;
+
+    startCurr = northwest;
+    curr = startCurr;
+
+    while(startCurr){
+        while (curr)
+        {
+            ImgNode* prev = curr;
+            curr = curr->east;
+            delete prev;
+            prev = NULL;
+        }
+        startCurr = startCurr->south;
+        
+        
+    }
+
+    startCurr = NULL;
+    curr = NULL;
+    
 	
 }
 
